@@ -101,7 +101,8 @@ export const AppProvider = ({ children }) => {
       setCurrentUser({ ...newUser, id: docRef.id });
       return { success: true };
     } catch (e) {
-      return { success: false, message: 'Error creating account.' };
+      console.error("Firebase Registration Error:", e);
+      return { success: false, message: 'Error creating account. (Check browser console for details)' };
     }
   };
 
@@ -143,7 +144,8 @@ export const AppProvider = ({ children }) => {
         setCurrentUser({ ...newUser, id: docRef.id });
         return { success: true };
       } catch (e) {
-        return { success: false, message: 'Error creating account with Google.' };
+        console.error("Firebase Auth Error:", e);
+        return { success: false, message: 'Error creating account with Google. (Check browser console for details)' };
       }
     }
   };
