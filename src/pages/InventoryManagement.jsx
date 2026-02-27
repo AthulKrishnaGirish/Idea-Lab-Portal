@@ -53,11 +53,11 @@ const InventoryManagement = () => {
 
     return (
         <div className="animate-fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                 <h2>Inventory Management</h2>
                 <button
                     onClick={() => { setIsAdding(!isAdding); setEditingId(null); }}
-                    className={isAdding ? "btn btn-secondary" : "btn btn-primary"}
+                    className={`full-width-mobile ${isAdding ? "btn btn-secondary" : "btn btn-primary"}`}
                 >
                     {isAdding ? 'Cancel' : <><PlusCircle size={18} /> Add Item</>}
                 </button>

@@ -36,13 +36,13 @@ const StudentDashboard = () => {
     };
 
     return (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+        <div className="animate-fade-in stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
 
             {/* Left Column: Inventory */}
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="full-width-mobile">
+                <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                     <h2>Available Components</h2>
-                    <div className="input-group" style={{ marginBottom: 0, width: '300px' }}>
+                    <div className="input-group full-width-mobile" style={{ marginBottom: 0, width: '300px' }}>
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="text"

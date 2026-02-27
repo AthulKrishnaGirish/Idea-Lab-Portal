@@ -46,15 +46,15 @@ const Login = () => {
             {/* Dark overlay for the background image */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 17, 40, 0.85)', zIndex: 0 }}></div>
 
-            <div className="glass-panel animate-fade-in" style={{ maxWidth: '450px', width: '100%', margin: '0 auto', position: 'relative', zIndex: 1, padding: '3rem 2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                    <img src="/cognicor.png" alt="CogniCor Logo" style={{ height: '55px', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                    <img src="/aicte.png" alt="AICTE Logo" style={{ height: '65px', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                    <img src="/idealab.png" alt="IDEA Lab Logo" style={{ height: '75px', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                    <img src="/mec.png" alt="MEC Logo" style={{ height: '65px', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+            <div className="glass-panel animate-fade-in" style={{ maxWidth: '450px', width: '90%', margin: '0 auto', position: 'relative', zIndex: 1, padding: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    <img src="/cognicor.png" alt="CogniCor Logo" style={{ height: 'auto', maxHeight: '45px', maxWidth: '30%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    <img src="/aicte.png" alt="AICTE Logo" style={{ height: 'auto', maxHeight: '50px', maxWidth: '30%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    <img src="/idealab.png" alt="IDEA Lab Logo" style={{ height: 'auto', maxHeight: '60px', maxWidth: '30%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    <img src="/mec.png" alt="MEC Logo" style={{ height: 'auto', maxHeight: '50px', maxWidth: '30%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} />
                 </div>
 
-                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <h1 className="nav-brand" style={{ justifyContent: 'center', fontSize: '1.8rem', background: 'white', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textAlign: 'center', lineHeight: '1.2' }}>
                         CogniCor AICTE IDEA Lab
                     </h1>

@@ -322,3 +322,61 @@ button {
   color: #64748b;
   border: 1px solid #cbd5e1;
 }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+
+  /* Layout adjustments */
+  .main-content {
+    padding: 1rem;
+  }
+
+  .glass-panel {
+    padding: 1.5rem;
+  }
+
+  /* Navbar adjustments */
+  .navbar {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .nav-brand {
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+
+  .navbar>div:last-child {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.3rem !important;
+  }
+
+  h3 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Utilities */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .full-width-mobile {
+    width: 100% !important;
+  }
+
+  .stack-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}

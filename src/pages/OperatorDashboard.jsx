@@ -27,9 +27,9 @@ const OperatorDashboard = () => {
 
     return (
         <div className="animate-fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="stack-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                 <h2>Operator Dashboard</h2>
-                <div className="badge badge-pending" style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
+                <div className="badge badge-pending full-width-mobile" style={{ fontSize: '1rem', padding: '0.5rem 1rem', textAlign: 'center' }}>
                     {requests.filter(r => r.status === 'pending').length} Pending Requests
                 </div>
             </div>
