@@ -3,9 +3,11 @@ import { useAppContext } from '../context/AppContext';
 import { UserCircle, ShieldAlert } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const { login, registerUser, googleLogin } = useAppContext();
+    const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(true);
     const [role, setRole] = useState('student');
     const [firstName, setFirstName] = useState('');
@@ -14,14 +16,16 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleGoogleSuccess = (credentialResponse) => {
+    const handleGoogleSuccess = async (credentialResponse) => {
         try {
             const decoded = jwtDecode(credentialResponse.credential);
             const { email, given_name, family_name } = decoded;
 
-            const result = googleLogin(email, given_name || '', family_name || '', role);
+            const result = await googleLogin(email, given_name || '', family_name || '', role);
             if (!result.success) {
                 setError(result.message);
+            } else {
+                navigate(`/${role}-dashboard`);
             }
         } catch (err) {
             setError('Failed to securely log in with Google.');
@@ -33,7 +37,7 @@ const Login = () => {
         setError('Google Login window closed or failed.');
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
@@ -41,15 +45,19 @@ const Login = () => {
             const result = login(role, email, password);
             if (!result.success) {
                 setError(result.message);
+            } else {
+                navigate(`/${role}-dashboard`);
             }
         } else {
             if (!firstName.trim() || !lastName.trim() || !email.trim()) {
                 setError('First Name, Last Name, and Email are all required for registration.');
                 return;
             }
-            const result = registerUser(firstName, lastName, email, password, role);
+            const result = await registerUser(firstName, lastName, email, password, role);
             if (!result.success) {
                 setError(result.message);
+            } else {
+                navigate(`/${role}-dashboard`);
             }
         }
     };
@@ -189,7 +197,6 @@ const Login = () => {
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleError}
-                            useOneTap
                             theme="filled_black"
                             width="100%"
                             text={isLogin ? "signin_with" : "signup_with"}
