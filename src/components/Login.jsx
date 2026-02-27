@@ -21,7 +21,7 @@ const Login = () => {
             const decoded = jwtDecode(credentialResponse.credential);
             const { email, given_name, family_name } = decoded;
 
-            const result = await googleLogin(email, given_name || '', family_name || '', role);
+            const result = await googleLogin(email, given_name || '', family_name || '', role, isLogin);
             if (!result.success) {
                 setError(result.message);
             } else {

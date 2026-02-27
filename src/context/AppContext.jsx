@@ -86,7 +86,7 @@ export const AppProvider = ({ children }) => {
     const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
     if (existingUser) {
-      return { success: false, message: 'An account with this email already exists!' };
+      return { success: false, message: `An account with this email already exists as a ${existingUser.role}!` };
     }
     const newUser = {
       firstName,
@@ -123,13 +123,26 @@ export const AppProvider = ({ children }) => {
     return { success: true };
   };
 
-  const googleLogin = async (email, firstName, lastName, role) => {
-    const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase() && u.role === role);
+  const googleLogin = async (email, firstName, lastName, role, isLoginAttempt) => {
+    const existingUserAnyRole = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    const existingUserSpecificRole = users.find(u => u.email?.toLowerCase() === email.toLowerCase() && u.role === role);
 
-    if (existingUser) {
-      setCurrentUser({ id: existingUser.id, name: existingUser.name, firstName: existingUser.firstName, lastName: existingUser.lastName, email: existingUser.email, role: existingUser.role });
+    if (isLoginAttempt) {
+      if (!existingUserAnyRole) {
+        return { success: false, message: 'Google account not registered. Please switch to "Sign Up" to create an account first.' };
+      }
+      if (!existingUserSpecificRole) {
+        return { success: false, message: `This Google account is registered as a ${existingUserAnyRole.role}. Please switch roles to log in.` };
+      }
+
+      setCurrentUser({ id: existingUserSpecificRole.id, name: existingUserSpecificRole.name, firstName: existingUserSpecificRole.firstName, lastName: existingUserSpecificRole.lastName, email: existingUserSpecificRole.email, role: existingUserSpecificRole.role });
       return { success: true };
     } else {
+      // It is a Sign Up attempt
+      if (existingUserAnyRole) {
+        return { success: false, message: `This Google account is already registered as a ${existingUserAnyRole.role}. Please switch to "Sign In".` };
+      }
+
       const newUser = {
         firstName,
         lastName,
