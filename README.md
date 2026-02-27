@@ -1,16 +1,31 @@
-# React + Vite
+# Digital Component Borrowing System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Description
+The Digital Component Borrowing System is a comprehensive solution designed to streamline the process of borrowing and managing digital components within an organization. This system facilitates various operational aspects, making it easier for users to request, track, and return digital items efficiently.
 
-Currently, two official plugins are available:
+### Key Features:
+- **User Management:** Manage users with roles and permissions tailored for tracking borrowing activities.
+- **Inventory Tracking:** Keep an up-to-date inventory of all digital components, including their availability and condition.
+- **Borrowing Workflow:** Simplify the borrowing process with easy-to-use interfaces for request submission, approval, and return.
+- **Notifications:** Automated notifications to remind users of upcoming return dates and new items added to the inventory.
+- **Reporting Tools:** Generate reports on borrowing activities, user participation, and inventory statistics for better decision-making.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Technologies Used:
+- Web Framework: Node.js
+- Database: MongoDB
+- Frontend: React
+- Auth: JWT for secure user authentication
 
-## React Compiler
+### Installation Instructions:
+1. Clone the repository:
+    `git clone https://github.com/AthulKrishnaGirish/Idea-Lab-Portal.git`
+2. Install dependencies:
+    `npm install`
+3. Start the application:
+    `npm start`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Contribution:
+Contributions are welcomed! Please submit a pull request or open an issue for any enhancements or bug fixes.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### License:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
