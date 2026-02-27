@@ -1,7 +1,7 @@
-# Digital Component Borrowing System
+# Digital Component Borrowing System For Idea Lab MEC
 
 ## Project Description
-The Digital Component Borrowing System is a comprehensive solution designed to streamline the process of borrowing and managing digital components within an organization. This system facilitates various operational aspects, making it easier for users to request, track, and return digital items efficiently.
+The Digital Component Borrowing System is a comprehensive solution designed to streamline the process of borrowing and managing digital components within Idea Lab, MEC. This system facilitates various operational aspects, making it easier for users to request, track, and return digital items efficiently.
 
 ### Key Features:
 - **User Management:** Manage users with roles and permissions tailored for tracking borrowing activities.
@@ -27,5 +27,7 @@ The Digital Component Borrowing System is a comprehensive solution designed to s
 ### Contribution:
 Contributions are welcomed! Please submit a pull request or open an issue for any enhancements or bug fixes.
 
-### License:
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+by,
+Athul Krishna Girish
+
+### Thank You
