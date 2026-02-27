@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
-// Initial Mock Data
+// Initial Mock Data (used only to seed the DB if empty on first load)
 const INITIAL_INVENTORY = [
   { id: 'item-1', name: 'Arduino Uno R3', category: 'Microcontrollers', quantity: 15, available: 15, imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=200' },
   { id: 'item-2', name: 'Raspberry Pi 4', category: 'Microcomputers', quantity: 5, available: 3, imageUrl: 'https://images.unsplash.com/photo-1587302912306-cf1ed9c33146?auto=format&fit=crop&q=80&w=200' },
@@ -21,60 +23,20 @@ const AppContext = createContext();
 export const useAppContext = () => useContext(AppContext);
 
 export const AppProvider = ({ children }) => {
-  // State
-  const [currentUser, setCurrentUser] = useState(null); // { id, name, username, role: 'student' | 'operator' }
+  const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [requests, setRequests] = useState([]);
 
-  // Load from LocalStorage on mount
+  // Restore active login session from local storage so user doesn't have to log in on refresh
   useEffect(() => {
-    const savedInventory = localStorage.getItem('ideaLab_inventory');
-    const savedRequests = localStorage.getItem('ideaLab_requests');
     const savedUser = localStorage.getItem('ideaLab_user');
-    const savedUsers = localStorage.getItem('ideaLab_users');
-
-    if (savedUsers) {
-      setUsers(JSON.parse(savedUsers));
-    }
-
-    if (savedInventory) {
-      const parsedInventory = JSON.parse(savedInventory);
-      // Ensure existing items have the updated images
-      const mergedInventory = parsedInventory.map(item => {
-        const initialMatch = INITIAL_INVENTORY.find(i => i.id === item.id);
-        return initialMatch ? { ...item, imageUrl: initialMatch.imageUrl } : item;
-      });
-      setInventory(mergedInventory);
-    } else {
-      setInventory(INITIAL_INVENTORY);
-      localStorage.setItem('ideaLab_inventory', JSON.stringify(INITIAL_INVENTORY));
-    }
-
-    if (savedRequests) {
-      setRequests(JSON.parse(savedRequests));
-    }
-
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
   }, []);
 
-  // Save to LocalStorage whenstate changes
-  useEffect(() => {
-    if (inventory.length > 0) {
-      localStorage.setItem('ideaLab_inventory', JSON.stringify(inventory));
-    }
-  }, [inventory]);
-
-  useEffect(() => {
-    localStorage.setItem('ideaLab_requests', JSON.stringify(requests));
-  }, [requests]);
-
-  useEffect(() => {
-    localStorage.setItem('ideaLab_users', JSON.stringify(users));
-  }, [users]);
-
+  // Sync login session locally
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('ideaLab_user', JSON.stringify(currentUser));
@@ -83,17 +45,50 @@ export const AppProvider = ({ children }) => {
     }
   }, [currentUser]);
 
+  // Firestore Real-Time Listeners
+  useEffect(() => {
+    // Listen to users
+    const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setUsers(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    });
+
+    // Listen to inventory and seed if completely empty
+    const unsubscribeInventory = onSnapshot(collection(db, "inventory"), (snapshot) => {
+      const items = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      if (items.length === 0) {
+        INITIAL_INVENTORY.forEach(async (item) => {
+          try {
+            await setDoc(doc(db, "inventory", item.id), item);
+          } catch (e) { console.error("Error seeding DB", e); }
+        });
+      } else {
+        setInventory(items);
+      }
+    });
+
+    // Listen to requests and order them latest-first
+    const unsubscribeRequests = onSnapshot(collection(db, "requests"), (snapshot) => {
+      const reqs = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      reqs.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+      setRequests(reqs);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeUsers();
+      unsubscribeInventory();
+      unsubscribeRequests();
+    };
+  }, []);
+
   // Auth Methods
-  const registerUser = (firstName, lastName, email, password, role) => {
-    const existingUser = users.find(u =>
-      (u.email?.toLowerCase() === email.toLowerCase())
-    );
+  const registerUser = async (firstName, lastName, email, password, role) => {
+    const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
     if (existingUser) {
       return { success: false, message: 'An account with this email already exists!' };
     }
     const newUser = {
-      id: `${role === 'operator' ? 'op' : 'stu'}-${Date.now()}`,
       firstName,
       lastName,
       name: `${firstName} ${lastName}`,
@@ -101,16 +96,19 @@ export const AppProvider = ({ children }) => {
       password,
       role
     };
-    setUsers(prev => [...prev, newUser]);
-    setCurrentUser(newUser); // Auto login
-    return { success: true };
+    try {
+      const docRef = await addDoc(collection(db, "users"), newUser);
+      setCurrentUser({ ...newUser, id: docRef.id });
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: 'Error creating account.' };
+    }
   };
 
   const login = (role, email, password) => {
-    // Check if user exists and password matches
     const user = users.find(u =>
       (u.email?.toLowerCase() === email.toLowerCase() && u.role === role) ||
-      (!u.email && u.username?.toLowerCase() === email.toLowerCase() && u.role === role) // Backward compat for initial users
+      (!u.email && u.username?.toLowerCase() === email.toLowerCase() && u.role === role)
     );
 
     if (!user) {
@@ -124,71 +122,112 @@ export const AppProvider = ({ children }) => {
     return { success: true };
   };
 
+  const googleLogin = async (email, firstName, lastName, role) => {
+    const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase() && u.role === role);
+
+    if (existingUser) {
+      setCurrentUser({ id: existingUser.id, name: existingUser.name, firstName: existingUser.firstName, lastName: existingUser.lastName, email: existingUser.email, role: existingUser.role });
+      return { success: true };
+    } else {
+      const newUser = {
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`,
+        email,
+        password: 'GOOGLE_SSO_USER',
+        role
+      };
+
+      try {
+        const docRef = await addDoc(collection(db, "users"), newUser);
+        setCurrentUser({ ...newUser, id: docRef.id });
+        return { success: true };
+      } catch (e) {
+        return { success: false, message: 'Error creating account with Google.' };
+      }
+    }
+  };
+
   const logout = () => {
     setCurrentUser(null);
   };
 
   // Inventory Methods
-  const addInventoryItem = (item) => {
-    setInventory(prev => [...prev, { ...item, id: `item-${Date.now()}` }]);
+  const addInventoryItem = async (item) => {
+    try {
+      await addDoc(collection(db, "inventory"), item);
+    } catch (e) { console.error("Error adding inventory", e); }
   };
 
-  const updateInventoryItem = (id, updates) => {
-    setInventory(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+  const updateInventoryItem = async (id, updates) => {
+    try {
+      await updateDoc(doc(db, "inventory", id), updates);
+    } catch (e) { console.error("Error updating inventory", e); }
   };
 
-  const deleteInventoryItem = (id) => {
-    setInventory(prev => prev.filter(item => item.id !== id));
+  const deleteInventoryItem = async (id) => {
+    try {
+      await deleteDoc(doc(db, "inventory", id));
+    } catch (e) { console.error("Error deleting inventory", e); }
   };
 
   // Request Methods
-  const requestItem = (studentId, studentName, studentClass, itemId, itemName, need) => {
+  const requestItem = async (studentId, studentName, studentClass, itemId, itemName, need) => {
     const newRequest = {
-      id: `req-${Date.now()}`,
       studentId,
       studentName,
-      studentClass, // New field Added
+      studentClass,
       itemId,
       itemName,
       need,
-      status: 'pending', // pending, approved, rejected, returned
+      status: 'pending',
       requestDate: new Date().toISOString(),
       returnDate: null,
-      approvedBy: null // New field to track who approved
+      approvedBy: null
     };
-    setRequests(prev => [newRequest, ...prev]);
+    try {
+      await addDoc(collection(db, "requests"), newRequest);
+    } catch (e) { console.error("Error creating request", e); }
   };
 
-  const updateRequestStatus = (requestId, status, newReturnDate = null, operatorName = null) => {
-    setRequests(prev => prev.map(req => {
-      if (req.id === requestId) {
-        let returnDate = req.returnDate;
-        let approvedBy = req.approvedBy;
+  const updateRequestStatus = async (requestId, status, newReturnDate = null, operatorName = null) => {
+    const reqDoc = requests.find(r => r.id === requestId);
+    if (!reqDoc) return;
 
-        // Auto-generate return date if approving and none exists
-        if (status === 'approved' && !req.returnDate) {
-          const date = new Date();
-          date.setDate(date.getDate() + 7); // Default 7 days
-          returnDate = newReturnDate || date.toISOString();
-          approvedBy = operatorName || req.approvedBy; // Track Operator
-        } else if (status === 'approved' && newReturnDate) {
-          returnDate = newReturnDate;
-          approvedBy = operatorName || req.approvedBy;
-        }
+    let returnDate = reqDoc.returnDate;
+    let approvedBy = reqDoc.approvedBy;
 
-        // Handle inventory logic based on status change
-        if (status === 'approved' && req.status === 'pending') {
-          // Decrement available
-          updateInventoryItem(req.itemId, { available: inventory.find(i => i.id === req.itemId).available - 1 });
-        } else if (status === 'returned' && req.status === 'approved') {
-          // Increment available
-          updateInventoryItem(req.itemId, { available: inventory.find(i => i.id === req.itemId).available + 1 });
-        }
+    // Logic to infer dates and approval author
+    if (status === 'approved' && !reqDoc.returnDate) {
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+      returnDate = newReturnDate || date.toISOString();
+      approvedBy = operatorName || reqDoc.approvedBy;
+    } else if (status === 'approved' && newReturnDate) {
+      returnDate = newReturnDate;
+      approvedBy = operatorName || reqDoc.approvedBy;
+    }
 
-        return { ...req, status, returnDate, approvedBy };
+    // Logic to change inventory availability exactly once when approving or returning
+    if (status === 'approved' && reqDoc.status === 'pending') {
+      const item = inventory.find(i => i.id === reqDoc.itemId);
+      if (item) {
+        await updateInventoryItem(reqDoc.itemId, { available: item.available - 1 });
       }
-      return req;
-    }));
+    } else if (status === 'returned' && reqDoc.status === 'approved') {
+      const item = inventory.find(i => i.id === reqDoc.itemId);
+      if (item) {
+        await updateInventoryItem(reqDoc.itemId, { available: item.available + 1 });
+      }
+    }
+
+    try {
+      await updateDoc(doc(db, "requests", requestId), {
+        status,
+        returnDate,
+        approvedBy
+      });
+    } catch (e) { console.error("Error updating request", e); }
   };
 
   const value = {
@@ -197,6 +236,7 @@ export const AppProvider = ({ children }) => {
     inventory,
     requests,
     login,
+    googleLogin,
     logout,
     registerUser,
     addInventoryItem,

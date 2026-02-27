@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { UserCircle, ShieldAlert } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
-    const { login, registerUser } = useAppContext();
+    const { login, registerUser, googleLogin } = useAppContext();
     const [isLogin, setIsLogin] = useState(true);
     const [role, setRole] = useState('student');
     const [firstName, setFirstName] = useState('');
@@ -11,6 +13,25 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
+    const handleGoogleSuccess = (credentialResponse) => {
+        try {
+            const decoded = jwtDecode(credentialResponse.credential);
+            const { email, given_name, family_name } = decoded;
+
+            const result = googleLogin(email, given_name || '', family_name || '', role);
+            if (!result.success) {
+                setError(result.message);
+            }
+        } catch (err) {
+            setError('Failed to securely log in with Google.');
+            console.error(err);
+        }
+    };
+
+    const handleGoogleError = () => {
+        setError('Google Login window closed or failed.');
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -157,6 +178,24 @@ const Login = () => {
                     <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }}>
                         {isLogin ? 'Access System' : 'Create Account & Login'}
                     </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
+                        <span style={{ padding: '0 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>OR CONTINUE WITH</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            useOneTap
+                            theme="filled_black"
+                            width="100%"
+                            text={isLogin ? "signin_with" : "signup_with"}
+                            shape="rectangular"
+                        />
+                    </div>
                 </form>
             </div>
         </div>
